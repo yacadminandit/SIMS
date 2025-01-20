@@ -1,0 +1,385 @@
+Public arr_of_filtered_values As Variant
+
+Private Sub CLEARALL_Click()
+    ClearEntries
+End Sub
+
+Private Sub FINDUSER_Click()
+    Worksheets("Database").Select
+    Range("D2").Select
+    Range(Selection, Selection.End(xlDown)).Select
+    
+    Dim TotalIssuers As Integer
+    TotalIssuers = Selection.Count
+    
+    'CONVERTING THE EMPLOYID INTO UPPERCASE
+    Dim CountErrorinFindingEmployId As Integer
+    CountErrorinFindingEmployId = 0
+    Dim uppercaseEmployId As String
+    uppercaseEmployId = UCase(returnForm.employId.Value)
+    
+    'veryfing if employ id valid or not
+    For i = 2 To TotalIssuers + 2
+        'if it is available in the list of ids then exit from loop
+        If uppercaseEmployId = Cells(i, 4) And Cells(i, 10).Value = "Working" Then
+            returnForm.PersonName.Value = Cells(i, 2).Value
+    
+            ClearEntries
+            FilterData (returnForm.employId.Value)
+            
+            Exit For
+        'otherwise count the error and compare it to the total users
+        ElseIf uppercaseEmployId <> Cells(i, 4).Value And uppercaseEmployId <> "" Then
+            CountErrorinFindingEmployId = CountErrorinFindingEmployId + 1
+        End If
+        
+        If CountErrorinFindingEmployId = TotalIssuers Then
+            CountErrorinFindingEmployId = 0
+            MsgBox (uppercaseEmployId + " IS AN INVALID EMPLOY ID OR HAS RESIGNED")
+            returnForm.PersonName.Value = ""
+            returnForm.employId.Value = ""
+        End If
+    Next i
+End Sub
+
+Private Sub ScrollBar1_Change()
+    Dim arr As Variant
+    arr = arr_of_filtered_values
+    Dim no_of_columns_in_array As Integer
+    no_of_columns_in_array = (UBound(arr) - LBound(arr) + 1) / 6
+    
+    If (no_of_columns_in_array / 8) < 1 Then
+        returnForm.ScrollBar1.Max = 1
+    ElseIf (no_of_columns_in_array Mod 8) = 1 Then
+        returnForm.ScrollBar1.Max = (no_of_columns_in_array / 8) + 1
+    Else
+        returnForm.ScrollBar1.Max = (no_of_columns_in_array / 8)
+    End If
+        
+    Dim ctrl As Control
+    Dim x As Long
+       
+    x = (returnForm.ScrollBar1.Value - 1) * 48
+    x = x + 1
+    
+    'clear the elements
+    ClearEntries
+    
+    For Each ctrl In returnForm.Frame2.Controls
+        If x > (UBound(arr) - LBound(arr) + 1) Then
+            Exit For
+        End If
+    
+        ctrl.Caption = arr(x)
+        x = x + 1
+    Next ctrl
+End Sub
+
+Private Function initial_callto_scrollbar(arr As Variant)
+    Dim no_of_columns_in_array As Integer
+    no_of_columns_in_array = (UBound(arr) - LBound(arr) + 1) / 6
+    
+    If (no_of_columns_in_array / 8) < 1 Then
+        returnForm.ScrollBar1.Max = 1
+    ElseIf (no_of_columns_in_array Mod 8) = 1 Then
+        returnForm.ScrollBar1.Max = (no_of_columns_in_array / 8) + 1
+    Else
+        returnForm.ScrollBar1.Max = (no_of_columns_in_array / 8)
+    End If
+    
+    Dim ctrl As Control
+    Dim x As Long
+       
+    x = 1
+    For Each ctrl In returnForm.Frame2.Controls
+        If x > (UBound(arr) - LBound(arr) + 1) Then
+            Exit For
+        End If
+        ctrl.Caption = arr(x)
+        x = x + 1
+    Next ctrl
+End Function
+Private Sub update_outlogs(ByVal entry_no As Long, ByVal w As Integer, ByVal f As Integer, ByVal d As Integer, Return_date)
+    Dim ws As Worksheet
+    Set ws = ThisWorkbook.Sheets("Issue Logs (OUT)")
+    
+    ws.Cells(entry_no + 2, 11).Value = "Returned"
+    ws.Cells(entry_no + 2, 12).Value = Return_date
+    ws.Cells(entry_no + 2, 13).Value = w
+    ws.Cells(entry_no + 2, 14).Value = f
+    ws.Cells(entry_no + 2, 15).Value = d
+End Sub
+
+Private Sub UpdateBtn_Click()
+    Worksheets("Summary").Unprotect "ytc&yac"
+    Worksheets("Issue Logs (OUT)").Unprotect "ytc&yac"
+    Worksheets("Issue Logs (OUT)").Select
+    
+    Dim w, f, d As Integer
+    
+    Dim i, j, k As Integer
+    j = 2
+    k = 3
+    For i = 1 To 8
+        If Me.Controls("ReturnDate" & i).Value <> "" Then
+            If Me.Controls("Working" & i).Value = "" Then
+                w = 0
+            Else
+                w = CInt(Me.Controls("Working" & i).Value)
+            End If
+            
+            If Me.Controls("Finished" & i).Value = "" Then
+                f = 0
+            Else
+                f = CInt(Me.Controls("Finished" & i).Value)
+            End If
+            
+            If Me.Controls("Damaged" & i).Value = "" Then
+                d = 0
+            Else
+                d = CInt(Me.Controls("Damaged" & i).Value)
+            End If
+            
+            If CInt(Me.Controls("Label" & i * 6).Caption) = (w + f + d) Then
+                update_outlogs CLng(Me.Controls("Label" & j).Caption), w, f, d, Me.Controls("ReturnDate" & i).Value
+            End If
+        End If
+        j = j + 6
+        k = k + 6
+    Next i
+        
+    Worksheets("Summary").Protect "ytc&yac"
+    Worksheets("Issue Logs (OUT)").Protect "ytc&yac"
+    
+    MsgBox "Return Data Updated Successfully"
+End Sub
+
+Private Sub ClearEntries()
+    returnForm.Label1.Caption = ""
+    returnForm.Label2.Caption = ""
+    returnForm.Label3.Caption = ""
+    returnForm.Label4.Caption = ""
+    returnForm.Label5.Caption = ""
+    returnForm.Label6.Caption = ""
+    returnForm.Label7.Caption = ""
+    returnForm.Label8.Caption = ""
+    returnForm.Label9.Caption = ""
+    returnForm.Label10.Caption = ""
+    returnForm.Label11.Caption = ""
+    returnForm.Label12.Caption = ""
+    returnForm.Label13.Caption = ""
+    returnForm.Label14.Caption = ""
+    returnForm.Label15.Caption = ""
+    returnForm.Label16.Caption = ""
+    returnForm.Label17.Caption = ""
+    returnForm.Label18.Caption = ""
+    returnForm.Label19.Caption = ""
+    returnForm.Label20.Caption = ""
+    returnForm.Label21.Caption = ""
+    returnForm.Label22.Caption = ""
+    returnForm.Label23.Caption = ""
+    returnForm.Label24.Caption = ""
+    returnForm.Label25.Caption = ""
+    returnForm.Label26.Caption = ""
+    returnForm.Label27.Caption = ""
+    returnForm.Label28.Caption = ""
+    returnForm.Label29.Caption = ""
+    returnForm.Label30.Caption = ""
+    returnForm.Label31.Caption = ""
+    returnForm.Label32.Caption = ""
+    returnForm.Label33.Caption = ""
+    returnForm.Label34.Caption = ""
+    returnForm.Label35.Caption = ""
+    returnForm.Label36.Caption = ""
+    returnForm.Label37.Caption = ""
+    returnForm.Label38.Caption = ""
+    returnForm.Label39.Caption = ""
+    returnForm.Label40.Caption = ""
+    returnForm.Label41.Caption = ""
+    returnForm.Label42.Caption = ""
+    returnForm.Label43.Caption = ""
+    returnForm.Label44.Caption = ""
+    returnForm.Label45.Caption = ""
+    returnForm.Label46.Caption = ""
+    returnForm.Label47.Caption = ""
+    returnForm.Label48.Caption = ""
+    
+    returnForm.ReturnDate1.Value = ""
+    returnForm.Working1.Value = ""
+    returnForm.Damaged1.Value = ""
+    returnForm.Finished1.Value = ""
+    returnForm.ReturnDate2.Value = ""
+    returnForm.Working2.Value = ""
+    returnForm.Damaged2.Value = ""
+    returnForm.Finished2.Value = ""
+    returnForm.ReturnDate3.Value = ""
+    returnForm.Working3.Value = ""
+    returnForm.Damaged3.Value = ""
+    returnForm.Finished3.Value = ""
+    returnForm.ReturnDate4.Value = ""
+    returnForm.Working4.Value = ""
+    returnForm.Damaged4.Value = ""
+    returnForm.Finished4.Value = ""
+    returnForm.ReturnDate5.Value = ""
+    returnForm.Working5.Value = ""
+    returnForm.Damaged5.Value = ""
+    returnForm.Finished5.Value = ""
+    returnForm.ReturnDate6.Value = ""
+    returnForm.Working6.Value = ""
+    returnForm.Damaged6.Value = ""
+    returnForm.Finished6.Value = ""
+    returnForm.ReturnDate7.Value = ""
+    returnForm.Working7.Value = ""
+    returnForm.Damaged7.Value = ""
+    returnForm.Finished7.Value = ""
+    returnForm.ReturnDate8.Value = ""
+    returnForm.Working8.Value = ""
+    returnForm.Damaged8.Value = ""
+    returnForm.Finished8.Value = ""
+End Sub
+
+Private Sub PersonName_Enter()
+    returnForm.PersonName.Clear
+    Worksheets("Database").Select
+    Range("D2").Select
+    Range(Selection, Selection.End(xlDown)).Select
+    
+    Dim TotalIssuers As Integer
+    TotalIssuers = Selection.Count
+    
+    'Load the names into the dropdown list
+    For i = 2 To TotalIssuers + 1
+        If Cells(i, 10) = "Working" Then
+            returnForm.PersonName.AddItem Cells(i, 2).Value
+        End If
+    Next i
+End Sub
+
+Private Sub PersonName_Change()
+    Worksheets("Database").Select
+    Range("D2").Select
+    Range(Selection, Selection.End(xlDown)).Select
+    
+    Dim TotalIssuers As Integer
+    TotalIssuers = Selection.Count
+
+    'Set the Employ ID according the name chosen
+    For i = 2 To TotalIssuers + 1
+        If returnForm.PersonName.Value = Cells(i, 2) Then
+            returnForm.employId.Value = Cells(i, 4).Value
+        End If
+    Next i
+End Sub
+Private Sub ReturnDate1_Enter()
+    If Len(Trim(returnForm.Label6.Caption)) <> 0 Then
+        returnForm.ReturnDate1.Value = Date
+    End If
+End Sub
+Private Sub ReturnDate2_Enter()
+    If Len(Trim(returnForm.Label12.Caption)) <> 0 Then
+        returnForm.ReturnDate2.Value = Date
+    End If
+End Sub
+Private Sub ReturnDate3_Enter()
+    If Len(Trim(returnForm.Label18.Caption)) <> 0 Then
+        returnForm.ReturnDate3.Value = Date
+    End If
+End Sub
+Private Sub ReturnDate4_Enter()
+    If Len(Trim(returnForm.Label24.Caption)) <> 0 Then
+        returnForm.ReturnDate4.Value = Date
+    End If
+End Sub
+Private Sub ReturnDate5_Enter()
+    If Len(Trim(returnForm.Label30.Caption)) <> 0 Then
+        returnForm.ReturnDate5.Value = Date
+    End If
+End Sub
+Private Sub ReturnDate6_Enter()
+    If Len(Trim(returnForm.Label36.Caption)) <> 0 Then
+        returnForm.ReturnDate6.Value = Date
+    End If
+End Sub
+Private Sub ReturnDate7_Enter()
+    If Len(Trim(returnForm.Label42.Caption)) <> 0 Then
+        returnForm.ReturnDate7.Value = Date
+    End If
+End Sub
+Private Sub ReturnDate8_Enter()
+    If Len(Trim(returnForm.Label48.Caption)) <> 0 Then
+        returnForm.ReturnDate8.Value = Date
+    End If
+End Sub
+
+Private Function FilterData(emp_id As String) As Variant
+  Dim ws As Worksheet
+  Dim new_ws As Worksheet
+  Dim DataRange As Range
+  Dim VisibleFilteredData As Range
+  Dim LastRow As Long
+  Dim data_array As Variant
+  Dim total_filtered_cells As Long
+  
+  
+  Set ws = ThisWorkbook.Sheets("Issue Logs (OUT)")
+  ws.Unprotect "ytc&yac"
+  LastRow = ws.Cells(ws.Rows.Count, "A").End(xlUp).Row
+  
+  Set DataRange = ws.Range("A2:P" & LastRow)
+  DataRange.AutoFilter Field:=11, Criteria1:="Return Due"
+  DataRange.AutoFilter Field:=5, Criteria1:=emp_id
+  
+  On Error Resume Next
+   Set VisibleFilteredData = ws.Range("A3:P" & LastRow).SpecialCells(xlCellTypeVisible)
+  
+    If VisibleFilteredData.Count > 6 Then
+        VisibleFilteredData.Copy
+      
+        'Calculation of Total Numbers of Filtered Cells ("+ additional cells in column of SNo.")
+        total_filtered_cells = (VisibleFilteredData.Count + (VisibleFilteredData.Count / 16))
+        
+        Set new_ws = ThisWorkbook.Sheets.Add
+        new_ws.Name = "NewSheet"
+        new_ws.Select
+        new_ws.Range("A1").PasteSpecial Paste:=xlPasteAll
+        new_ws.Range("C:E").Delete
+        new_ws.Range("F:M").Delete
+        new_ws.Columns(1).Insert
+        
+        Dim total_rows As Integer
+        total_rows = total_filtered_cells / 17
+        Dim total_columns_in_newsheet As Integer
+        total_columns_in_newsheet = 6
+        
+        ReDim data_array(1 To (total_rows * total_columns_in_newsheet))
+        Dim k, q As Integer
+        q = 1
+        k = 1
+        For i = 1 To total_rows
+          For j = 1 To total_columns_in_newsheet
+              If (k Mod 2 = 1) And (k Mod 6 = 1) Then
+                  data_array(k) = q
+                  q = q + 1
+              Else
+                  data_array(k) = new_ws.Cells(i, j).Value
+              End If
+              k = k + 1
+          Next j
+        Next i
+        
+        
+        ws.AutoFilterMode = False
+        arr_of_filtered_values = data_array
+        initial_callto_scrollbar (arr_of_filtered_values)
+        
+        Application.DisplayAlerts = False
+            ThisWorkbook.Sheets("NewSheet").Delete
+        Application.DisplayAlerts = True
+    End If
+  On Error GoTo 0
+  
+End Function
+
+Private Sub UserForm_Click()
+
+End Sub

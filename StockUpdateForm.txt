@@ -1,0 +1,166 @@
+Private Sub CLEARALL_Click()
+    StockUpdateForm.date_.Value = ""
+    StockUpdateForm.time_.Value = ""
+    StockUpdateForm.productId.Clear
+    StockUpdateForm.productId.Value = ""
+    StockUpdateForm.productName.Clear
+    StockUpdateForm.productName.Value = ""
+    StockUpdateForm.quantity.Value = ""
+    StockUpdateForm.unit.Value = ""
+    StockUpdateForm.ReceivedBy.Value = ""
+    StockUpdateForm.BroughtBy.Value = ""
+End Sub
+
+Private Sub DateAndTime_Click()
+    StockUpdateForm.date_.Value = Date
+    StockUpdateForm.time_.Value = Time
+End Sub
+
+Private Sub LogBtn_Click()
+    Worksheets("Stock Update Logs (IN)").Unprotect "ytc&yac"
+    Worksheets("Summary").Unprotect "ytc&yac"
+    Worksheets("Stock Update Logs (IN)").Select
+    
+    Dim P_Id As String
+    P_Id = StockUpdateForm.productId.Value
+    Dim Qty As Integer
+    Qty = StockUpdateForm.quantity.Value
+    
+    Dim TotalProductIds As Integer
+        
+    If IsEmpty(Range("A2")) = True Then
+        Cells(2, 1).Value = 1
+        Cells(2, 2).Value = StockUpdateForm.date_.Value
+        Cells(2, 3).Value = StockUpdateForm.time_.Value
+        Cells(2, 4).Value = StockUpdateForm.productName.Value
+        Cells(2, 5).Value = StockUpdateForm.productId.Value
+        Cells(2, 6).Value = StockUpdateForm.quantity.Value
+        Cells(2, 7).Value = StockUpdateForm.unit.Value
+        Cells(2, 8).Value = StockUpdateForm.ReceivedBy.Value
+        Cells(2, 9).Value = StockUpdateForm.BroughtBy.Value
+        
+        'FOR HARD CORE ENTRY
+        'Worksheets("Summary").Unprotect "ytc&yac"
+        'Worksheets("Summary").Select
+        'Range("B3").Select
+        'Range(Selection, Selection.End(xlDown)).Select
+        
+        'TotalProductIds = Selection.Count
+        
+        'For i = 3 To TotalProductIds + 2
+         '   If P_Id = Cells(i, 2).Value Then
+          '      Cells(i, 11).Value = Cells(i, 11).Value + Qty
+           ' End If
+        'Next i
+    Else
+        Range("A1").Select
+        Range(Selection, Selection.End(xlDown)).Select
+        
+        Dim SerialNumber As Integer
+        SerialNumber = Selection.Count
+        
+        Cells(SerialNumber + 1, 1).Value = SerialNumber
+        Cells(SerialNumber + 1, 2).Value = StockUpdateForm.date_.Value
+        Cells(SerialNumber + 1, 3).Value = StockUpdateForm.time_.Value
+        Cells(SerialNumber + 1, 4).Value = StockUpdateForm.productName.Value
+        Cells(SerialNumber + 1, 5).Value = StockUpdateForm.productId.Value
+        Cells(SerialNumber + 1, 6).Value = StockUpdateForm.quantity.Value
+        Cells(SerialNumber + 1, 7).Value = StockUpdateForm.unit.Value
+        Cells(SerialNumber + 1, 8).Value = StockUpdateForm.ReceivedBy.Value
+        Cells(SerialNumber + 1, 9).Value = StockUpdateForm.BroughtBy.Value
+        
+        'FOR HARD CORE ENTRY
+        'Worksheets("Summary").Select
+        'Range("B3").Select
+        'Range(Selection, Selection.End(xlDown)).Select
+        
+        'TotalProductIds = Selection.Count
+        
+        'For i = 3 To TotalProductIds + 2
+         '   If P_Id = Cells(i, 2).Value Then
+          '      Cells(i, 11).Value = Cells(i, 11).Value + Qty
+           ' End If
+        'Next i
+    End If
+    Worksheets("Summary").Protect "ytc&yac"
+    Worksheets("Stock Update Logs (IN)").Protect "ytc&yac"
+End Sub
+
+Private Sub ProductId_Change()
+    Worksheets("Summary").Select
+    Range("B3").Select
+    Dim TotalProductIds As Integer
+    
+    Dim Found_Check As Integer
+    Found_Check = 0
+    
+    'This auto selects all the below cells containing data
+    Range(Selection, Selection.End(xlDown)).Select
+    TotalProductIds = Selection.Count
+    Dim SelectedProductId As String
+    
+     
+    If StockUpdateForm.productId.Value <> "" Then
+        SelectedProductId = StockUpdateForm.productId.Value
+        For i = 3 To TotalProductIds + 2
+            If SelectedProductId = Cells(i, 14).Value Then
+                Found_Check = 1
+                StockUpdateForm.productName.Value = Cells(i, 3).Value
+                StockUpdateForm.unit.Value = Cells(i, 4).Value
+            ElseIf SelectedProductId = Cells(i, 2).Value Then
+                Found_Check = 1
+                StockUpdateForm.productName.Value = Cells(i, 3).Value
+                StockUpdateForm.unit.Value = Cells(i, 4).Value
+            End If
+        Next i
+    End If
+    
+End Sub
+
+Private Sub ProductId_Enter()
+    Worksheets("Summary").Select
+    Range("B3").Select
+    Range(Selection, Selection.End(xlDown)).Select
+    
+    Dim TotalProductIds As Integer
+    TotalProductIds = Selection.Count
+    
+    If StockUpdateForm.productId.ListCount < 1 Then
+        For i = 3 To TotalProductIds + 2
+            StockUpdateForm.productId.AddItem Cells(i, 2).Value
+        Next i
+    End If
+End Sub
+
+Private Sub ProductName_Change()
+    Worksheets("Summary").Select
+    Range("C3").Select
+    Range(Selection, Selection.End(xlDown)).Select
+    
+    Dim TotalProducts As Integer
+    TotalProducts = Selection.Count
+    Dim SelectedProductName As String
+    
+    For i = 3 To TotalProducts + 2
+        SelectedProductName = StockUpdateForm.productName.Value
+        If SelectedProductName = Cells(i, 3) Then
+            StockUpdateForm.productId.Value = Cells(i, 2).Value
+        End If
+    Next i
+End Sub
+
+Private Sub ProductName_Enter()
+    Worksheets("Summary").Select
+    Range("C3").Select
+    Range(Selection, Selection.End(xlDown)).Select
+    
+    Dim TotalProducts As Integer
+    TotalProducts = Selection.Count
+    
+    If StockUpdateForm.productName.ListCount < 1 Then
+        For i = 3 To TotalProducts + 2
+            StockUpdateForm.productName.AddItem Cells(i, 3).Value
+        Next i
+    End If
+End Sub
+

@@ -1,0 +1,367 @@
+
+
+Private Sub clearEntry_Click()
+    issueForm.available_quantity.Caption = 0
+    issueForm.date_.Value = ""
+    issueForm.time_.Value = ""
+    issueForm.nameOfPerson.Clear
+    issueForm.productName.Value = ""
+    issueForm.Description.Value = ""
+    
+    If issueForm.nameOfPerson.ListCount > 1 Then
+        issueForm.nameOfPerson.Value = ""
+        issueForm.nameOfPerson.Clear
+    End If
+    
+    issueForm.employId.Value = ""
+    issueForm.productId.Value = 0
+    
+    If issueForm.productName.ListCount > 1 Then
+        issueForm.productName.Value = ""
+        issueForm.productName.Clear
+    End If
+    
+    issueForm.quantity.Value = 0
+    issueForm.unit.Value = ""
+    
+    If issueForm.IssueType.ListCount > 1 Then
+        issueForm.IssueType.Value = ""
+        issueForm.IssueType.Clear
+    End If
+    
+    If issueForm.SelfClassList.ListCount > 1 Then
+        issueForm.SelfClassList.Value = ""
+        issueForm.SelfClassList.Clear
+    End If
+        
+    'issueForm.Image_.Picture = LoadPicture(ThisWorkbook.Path + "\Staff Pics\HL.jpg")
+End Sub
+
+Private Sub DateAndTime_Click()
+    issueForm.date_.Value = Date
+    issueForm.time_.Value = Time
+End Sub
+
+
+Private Sub EmployId_Exit(ByVal Cancel As MSForms.ReturnBoolean)
+    'FINDING TOTAL NUMBER OF TEACHERS AND ADDING IT TO THE DROPDOWN LIST
+    Worksheets("Database").Select
+    Range("D2").Select
+    Dim TotalStaff As Integer
+    
+    'This auto selects all the below cells containing data
+    Range(Selection, Selection.End(xlDown)).Select
+    TotalStaff = Selection.Count
+    Dim SelectedEmployId As String
+    'converting emplyid to uppercase letter
+    SelectedEmployId = UCase(issueForm.employId.Value)
+
+    Dim Idvalid As Boolean
+    Idvalid = True
+    
+    For i = 2 To TotalStaff + 1
+        If SelectedEmployId = Cells(i, 4).Value Then
+            Idvalid = False
+        End If
+    Next i
+    If Idvalid = True Then
+        MsgBox ("Sorry Invalid EmployID Entered")
+        issueForm.nameOfPerson.Value = ""
+        issueForm.employId.Value = ""
+    End If
+    
+End Sub
+
+Private Sub IssueType_Enter()
+    If issueForm.IssueType.ListCount < 1 Then
+        issueForm.IssueType.AddItem "1 Time Issue"
+        issueForm.IssueType.AddItem "Return Due"
+    End If
+End Sub
+
+Private Sub logEntry_Click()
+    Worksheets("Issue Logs (OUT)").Select
+    
+    Dim CountSerialNo As Integer
+    
+    Dim quantity_aval As Integer
+    quantity_aval = CInt(issueForm.available_quantity.Caption)
+    
+    If quantity_aval < CInt(issueForm.quantity.Value) Then
+        issueForm.stock_alert.Visible = True
+    Else
+        Worksheets("Issue Logs (OUT)").Unprotect "ytc&yac"
+        'if it is the first entry
+        If IsEmpty(Range("A3").Value) = True Then
+            Cells(3, 1).Value = 1
+            EntryData (3)
+        Else
+            Range("A2").Select
+            Range(Selection, Selection.End(xlDown)).Select
+            CountSerialNo = Selection.Count
+            Cells(CountSerialNo + 2, 1).Value = Cells(CountSerialNo + 1, 1).Value + 1
+            EntryData (CountSerialNo + 2)
+        End If
+        Worksheets("Issue Logs (OUT)").Protect "ytc&yac"
+        issueForm.stock_alert.Visible = False
+    End If
+End Sub
+Private Sub EntryData(i)
+    Cells(i, 2).Value = issueForm.date_.Value
+    Cells(i, 3).Value = CStr(issueForm.time_.Value)
+    Cells(i, 4).Value = issueForm.nameOfPerson.Value
+    Cells(i, 5).Value = issueForm.employId.Value
+    Cells(i, 6).Value = issueForm.productId.Value
+    Cells(i, 7).Value = issueForm.productName.Value
+    Cells(i, 8).Value = issueForm.quantity.Value
+    Cells(i, 9).Value = issueForm.unit.Value
+    Cells(i, 10).Value = issueForm.SelfClassList.Value
+    Cells(i, 11).Value = issueForm.IssueType.Value
+    Cells(i, 16).Value = issueForm.Description.Value
+    
+    
+    Dim productIdMatch As String
+    Dim IssueType_ As String
+    Dim QuantityIssued As Integer
+    productIdMatch = issueForm.productId.Value
+    IssueType_ = issueForm.IssueType.Value
+    QuantityIssued = issueForm.quantity.Value
+    
+    'FOR THE HARD CORE ENTRY
+    'updating the summary
+    'Worksheets("Summary").Unprotect "ytc&yac"
+    'Worksheets("Summary").Select
+    'Range("B3").Select
+    'Range(Selection, Selection.End(xlDown)).Select
+    'CountProductIds = Selection.count
+    'For i = 2 To CountProductIds + 1
+     '   If productIdMatch = Cells(i, 2).Value Then
+      '      If IssueType_ = "1 Time Issue" Then
+       '         Cells(i, 6).Value = Cells(i, 6).Value + QuantityIssued
+        '    ElseIf IssueType_ = "Return Due" Then
+         '       Cells(i, 10).Value = Cells(i, 10).Value + QuantityIssued
+          '  End If
+        'End If
+    'Next i
+    'Worksheets("Summary").Protect "ytc&yac"
+    MsgBox "Data Recorded Successfully"
+    Worksheets("Issue Logs (OUT)").Select
+End Sub
+
+Private Sub nameOfPerson_Change()
+    Worksheets("Database").Unprotect "ytc&yac"
+    'FINDING TOTAL NUMBER OF TEACHERS AND ADDING IT TO THE DROPDOWN LIST
+    Worksheets("Database").Select
+    Range("B2").Select
+    Dim TotalStaff As Integer
+    
+    'This auto selects all the below cells containing data
+    Range(Selection, Selection.End(xlDown)).Select
+    TotalStaff = Selection.Count
+    Dim SelectedStaff As String
+    SelectedStaff = issueForm.nameOfPerson.Value
+    
+    For i = 2 To TotalStaff + 1
+        If SelectedStaff = Cells(i, 2).Value Then
+            issueForm.employId.Value = Cells(i, 4).Value
+        End If
+    Next i
+    Worksheets("Database").Protect "ytc&yac"
+End Sub
+
+Private Sub EmployId_Change()
+    'FINDING TOTAL NUMBER OF TEACHERS AND ADDING IT TO THE DROPDOWN LIST
+    Worksheets("Database").Select
+    Range("D2").Select
+    Dim TotalStaff As Integer
+    
+    'This auto selects all the below cells containing data
+    Range(Selection, Selection.End(xlDown)).Select
+    TotalStaff = Selection.Count
+    Dim SelectedEmployId As String
+    'converting emplyid to uppercase letter
+    SelectedEmployId = UCase(issueForm.employId.Value)
+
+    'Changing the Employ Image
+    Dim ImgaePath As String
+    For i = 2 To TotalStaff + 1
+        If SelectedEmployId = Cells(i, 4).Value Then
+            If Cells(i, 10).Value = "Working" Then
+                issueForm.nameOfPerson.Value = Cells(i, 2).Value
+                'ImagePath = ThisWorkbook.Path + "\Staff Pics\" + Cells(i, 2).Value + ".jpg"
+                'issueForm.Image_.Picture = LoadPicture(ImagePath)
+            Else
+                ImagePath = ThisWorkbook.Path + "\Staff Pics\HL.jpg"
+                issueForm.Image_.Picture = LoadPicture(ImagePath)
+                MsgBox (Cells(i, 2).Value + " Has Resigned.")
+                issueForm.nameOfPerson.Value = ""
+                issueForm.employId.Value = ""
+            End If
+        End If
+    Next i
+End Sub
+
+Private Sub nameOfPerson_Enter()
+    'FINDING TOTAL NUMBER OF TEACHERS AND ADDING IT TO THE DROPDOWN LIST
+    Worksheets("Database").Select
+    Range("B2").Select
+    Dim TotalStaff As Integer
+    Range(Selection, Selection.End(xlDown)).Select
+    TotalStaff = Selection.Count
+    
+    If issueForm.nameOfPerson.ListCount < 1 Then
+        For i = 2 To TotalStaff + 1
+            If Cells(i, 10).Value = "Working" Then
+                issueForm.nameOfPerson.AddItem Cells(i, 2).Value
+            End If
+        Next i
+    End If
+End Sub
+
+Private Sub ProductId_Change()
+    Worksheets("Summary").Select
+    Range("B3").Select
+    Dim TotalProductIds As Integer
+    
+    Dim Found_Check As Integer
+    Found_Check = 0
+    
+    'This auto selects all the below cells containing data
+    Range(Selection, Selection.End(xlDown)).Select
+    TotalProductIds = Selection.Count
+    Dim SelectedProductId As String
+    
+     
+    If issueForm.productId.Value <> "" Then
+        SelectedProductId = issueForm.productId.Value
+        For i = 3 To TotalProductIds + 2
+            If SelectedProductId = Cells(i, 14).Value Then
+                Found_Check = 1
+                issueForm.productName.Value = Cells(i, 3).Value
+                issueForm.unit.Value = Cells(i, 4).Value
+                issueForm.available_quantity.Caption = Cells(i, 12).Value
+            ElseIf SelectedProductId = Cells(i, 2).Value Then
+                Found_Check = 1
+                issueForm.productName.Value = Cells(i, 3).Value
+                issueForm.unit.Value = Cells(i, 4).Value
+                issueForm.available_quantity.Caption = Cells(i, 12).Value
+            End If
+        Next i
+    End If
+    
+    
+End Sub
+
+
+Private Sub ProductId_Exit(ByVal Cancel As MSForms.ReturnBoolean)
+    'JUST TO CHECK IF THE PRODUCT IS AVAILABEL OR NOT WITH SUCH ID AND DISPLAY MESSAGE IF NOT FOUND
+    Worksheets("Summary").Select
+    Range("B3").Select
+    Dim TotalProductIds As Integer
+    
+    Dim Found_Check As Integer
+    Found_Check = 0
+    
+    'This auto selects all the below cells containing data
+    Range(Selection, Selection.End(xlDown)).Select
+    TotalProductIds = Selection.Count
+    Dim SelectedProductId As String
+    
+     
+    If issueForm.productId.Value <> "" Then
+        SelectedProductId = issueForm.productId.Value
+        For i = 3 To TotalProductIds + 2
+            If SelectedProductId = Cells(i, 13).Value Then
+                Found_Check = 1
+            ElseIf SelectedProductId = Cells(i, 2).Value Then
+                Found_Check = 1
+            End If
+        Next i
+    End If
+    
+    If Found_Check = 0 Then
+        MsgBox ("NO PRODUCTS FOUND")
+    End If
+End Sub
+
+Private Sub ProductName_Change()
+    Worksheets("Summary").Select
+    Range("C3").Select
+    Dim TotalProducts As Integer
+    
+    'This auto selects all the below cells containing data
+    Range(Selection, Selection.End(xlDown)).Select
+    TotalProducts = Selection.Count
+    Dim SelectedProduct As String
+    SelectedProduct = issueForm.productName.Value
+    
+    For i = 3 To TotalProducts + 2
+        If SelectedProduct = Cells(i, 3).Value Then
+            issueForm.productId.Value = Cells(i, 2).Value
+            issueForm.unit.Value = Cells(i, 4).Value
+        End If
+    Next i
+End Sub
+
+Private Sub ProductName_Enter()
+    'setting the names of all the Products in the Productname DropDown list
+    Worksheets("Summary").Select
+    Range("C3").Select
+    Dim TotalProducts As Integer
+    
+    'This auto selects all the below cells containing data
+    Range(Selection, Selection.End(xlDown)).Select
+    TotalProducts = Selection.Count
+    Dim SelectedProduct As String
+    SelectedProduct = issueForm.productName.Value
+    
+    For i = 3 To TotalProducts + 2
+        If issueForm.productName.ListCount = TotalProducts Then
+            Exit For
+        Else
+            issueForm.productName.AddItem Cells(i, 3).Value
+        End If
+    Next i
+End Sub
+
+Private Sub Scan_Change()
+    'FINDING TOTAL NUMBER OF TEACHERS AND ADDING IT TO THE DROPDOWN LIST
+    Worksheets("Database").Select
+    Range("K2").Select
+    Dim TotalStaffCredentials As Integer
+    
+    'This auto selects all the below cells containing data
+    Range(Selection, Selection.End(xlDown)).Select
+    TotalStaffCredentials = Selection.Count
+    
+    'Changing the Employ Image
+    Dim ImgaePath As String
+    For i = 2 To TotalStaffCredentials + 1
+        If issueForm.Scan.Value = Cells(i, 11).Value Then
+            If Cells(i, 10).Value = "Working" Then
+                issueForm.nameOfPerson.Value = Cells(i, 2).Value
+                issueForm.employId.Value = Cells(i, 4).Value
+                ImagePath = ThisWorkbook.Path + "\Staff Pics\" + Cells(i, 2).Value + ".jpg"
+                issueForm.Image_.Picture = LoadPicture(ImagePath)
+            Else
+                ImagePath = ThisWorkbook.Path + "\Staff Pics\HL.jpg"
+                issueForm.Image_.Picture = LoadPicture(ImagePath)
+                MsgBox (Cells(i, 2).Value + " Has Resigned.")
+                issueForm.nameOfPerson.Value = ""
+                issueForm.employId.Value = ""
+            End If
+        End If
+    Next i
+End Sub
+
+Private Sub SelfClassList_Enter()
+    If issueForm.SelfClassList.ListCount < 1 Then
+        issueForm.SelfClassList.AddItem "Self"
+        issueForm.SelfClassList.AddItem "Class"
+        issueForm.SelfClassList.AddItem "HLF Hostel"
+        issueForm.SelfClassList.AddItem "YTC"
+        issueForm.SelfClassList.AddItem "YAC Office"
+        issueForm.SelfClassList.AddItem "Sales"
+    End If
+End Sub
+
